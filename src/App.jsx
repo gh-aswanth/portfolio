@@ -53,7 +53,7 @@ const Navbar = () => {
         <div className="text-xl font-bold mono gradient-text tracking-tighter">Aswanth Babu | Senior Software Engineer & LLM Architect</div>
       </div>
       <div className="hidden md:flex gap-8 text-sm uppercase tracking-widest font-semibold">
-        {['about', 'summary', 'skills', 'projects', 'contact'].map((item) => (
+        {['about', 'summary', 'skills', 'contact'].map((item) => (
           <a key={item} href={`#${item === 'summary' ? 'summary-board' : item}`} className="relative hover:text-primary transition-colors group">
             {item}
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
@@ -375,101 +375,6 @@ const Expertise = () => {
             </motion.div>
           ))}
         </div>
-      </div>
-    </section>
-  );
-};
-
-const ProjectCard = ({ project, index }) => (
-  <motion.div
-    initial={{ y: 50, opacity: 0 }}
-    whileInView={{ y: 0, opacity: 1 }}
-    viewport={{ once: true }}
-    transition={{ delay: index * 0.1 }}
-    className="group relative h-full glass rounded-[2.5rem] overflow-hidden hover:border-primary/50 transition-all duration-500"
-  >
-    <div className="p-8 md:p-12 flex flex-col h-full">
-      <div className="flex justify-between items-start mb-8">
-        <div className={cn("px-4 py-1 rounded-full text-[10px] mono uppercase tracking-[0.2em] font-bold border", project.borderColor, project.accent)}>
-            {project.tag}
-        </div>
-        <div className="p-3 rounded-full bg-white/5 text-gray-500 group-hover:text-primary transition-colors">
-            <ExternalLink size={20} />
-        </div>
-      </div>
-
-      <h3 className="text-3xl font-bold mb-6 leading-tight group-hover:text-primary transition-colors uppercase">
-        {project.title}
-      </h3>
-
-      <p className="text-gray-400 text-lg leading-relaxed mb-10 flex-grow">
-        {project.description}
-      </p>
-
-      <div className="flex gap-4 items-center">
-          <div className="h-px bg-white/10 flex-grow" />
-          <motion.div
-            whileHover={{ x: 5 }}
-            className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-primary cursor-pointer"
-          >
-            Case Study <ChevronRight size={16} />
-          </motion.div>
-      </div>
-    </div>
-
-    <div className={cn("absolute bottom-0 right-0 w-32 h-32 blur-[60px] opacity-20 transition-opacity group-hover:opacity-40", project.glowColor)} />
-  </motion.div>
-);
-
-const Projects = () => {
-  const projects = [
-    {
-      tag: "Agentic AI",
-      title: "Multi-Modal Enterprise Agentic Ecosystem",
-      description: "An end-to-end AI platform featuring autonomous agents capable of real-time voice interaction, image search, and document reasoning.",
-      accent: "text-primary",
-      borderColor: "border-primary/30",
-      glowColor: "bg-primary"
-    },
-    {
-      tag: "Vector Search",
-      title: "HNSW Optimized Knowledge Retrieval",
-      description: "High-performance vector search implementation using HNSW algorithms and Qdrant for ultra-fast, context-aware enterprise RAG.",
-      accent: "text-secondary",
-      borderColor: "border-secondary/30",
-      glowColor: "bg-secondary"
-    },
-    {
-        tag: "Computer Vision",
-        title: "Real-Time Computer Vision & OCR Integration",
-        description: "High-performance system combining YOLO-based detection and Docling/Tesseract OCR for industrial workflow automation.",
-        accent: "text-white",
-        borderColor: "border-white/30",
-        glowColor: "bg-white"
-    },
-    {
-        tag: "Data Architecture",
-        title: "Intelligent ETL & Database Architect for LLMs",
-        description: "Robust data engineering solution designed to transform unstructured legacy data into LLM-ready formats with Azure cloud scaling.",
-        accent: "text-primary",
-        borderColor: "border-primary/30",
-        glowColor: "bg-primary"
-    }
-  ];
-
-  return (
-    <section id="projects" className="py-32 px-6 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-20 gap-8">
-        <div className="max-w-2xl">
-            <h2 className="text-5xl md:text-7xl font-bold mb-6 italic uppercase">Selected<br /><span className="gradient-text not-italic">Innovations</span></h2>
-            <p className="text-gray-500 text-lg">Pushing the boundaries of what's possible with Generative AI and Enterprise Engineering.</p>
-        </div>
-        <div className="hidden md:block pb-4">
-            <div className="mono text-xs text-gray-600 uppercase tracking-widest">Archive 2020-2026</div>
-        </div>
-      </div>
-      <div className="grid lg:grid-cols-2 gap-8">
-        {projects.map((p, i) => <ProjectCard key={i} project={p} index={i} />)}
       </div>
     </section>
   );
