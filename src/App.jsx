@@ -20,6 +20,7 @@ import {
 import Background3D from './components/Background3D';
 import BinaryRain from './components/BinaryRain';
 import CustomCursor from './components/CustomCursor';
+import SummaryBoard from './components/SummaryBoard';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -42,18 +43,18 @@ const Navbar = () => {
       animate={{ y: 0 }}
       className={cn(
         "fixed top-0 w-full z-50 px-6 py-4 flex justify-between items-center transition-all duration-300",
-        scrolled ? "glass py-3" : "bg-transparent"
+        scrolled ? "glass py-3" : "bg-transparent backdrop-blur-sm md:backdrop-blur-none"
       )}
     >
       <div className="flex items-center gap-2 group">
         <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center border border-primary/30 group-hover:border-primary transition-colors">
           <Sparkles size={18} className="text-primary" />
         </div>
-        <div className="text-xl font-bold mono gradient-text tracking-tighter">AI.ARCH</div>
+        <div className="text-xl font-bold mono gradient-text tracking-tighter">Aswanth Babu | Senior Software Engineer & LLM Architect</div>
       </div>
       <div className="hidden md:flex gap-8 text-sm uppercase tracking-widest font-semibold">
-        {['about', 'skills', 'projects', 'contact'].map((item) => (
-          <a key={item} href={`#${item}`} className="relative hover:text-primary transition-colors group">
+        {['about', 'summary', 'skills', 'projects', 'contact'].map((item) => (
+          <a key={item} href={`#${item === 'summary' ? 'summary-board' : item}`} className="relative hover:text-primary transition-colors group">
             {item}
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
           </a>
@@ -67,7 +68,7 @@ const Navbar = () => {
 };
 
 const Hero = () => {
-  const text = ">_ Senior Software Engineer & LLM Architect";
+  const text = "Hey There!!";
   const [displayText, setDisplayText] = useState("");
 
   useEffect(() => {
@@ -94,63 +95,6 @@ const Hero = () => {
 
   return (
     <section id="hero" className="min-h-screen flex flex-col justify-center items-center px-6 pt-20 text-center relative overflow-hidden">
-      {/* Dynamic Skill Showcase */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        {skillIcons.map((skill, idx) => {
-          return (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ 
-                opacity: [0, 0.7, 0.7, 0],
-                scale: [0.5, 1.1, 1, 0.5],
-                x: [
-                  (Math.random() - 0.5) * 100 + "vw", 
-                  (Math.random() - 0.5) * 80 + "vw",
-                  (Math.random() - 0.5) * 100 + "vw"
-                ],
-                y: [
-                  (Math.random() - 0.5) * 100 + "vh", 
-                  (Math.random() - 0.5) * 80 + "vh",
-                  (Math.random() - 0.5) * 100 + "vh"
-                ],
-                rotate: [0, 180, 360],
-              }}
-              transition={{ 
-                duration: 20 + Math.random() * 10, 
-                repeat: Infinity, 
-                ease: "linear",
-                delay: skill.delay
-              }}
-              className={cn("absolute flex flex-col items-center gap-4", skill.color)}
-            >
-              <motion.div 
-                animate={{ 
-                  boxShadow: [
-                    "0 0 20px rgba(0, 242, 255, 0)",
-                    "0 0 40px rgba(0, 242, 255, 0.4)",
-                    "0 0 20px rgba(0, 242, 255, 0)"
-                  ]
-                }}
-                transition={{ duration: 4, repeat: Infinity }}
-                className="p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl"
-              >
-                {skill.icon}
-              </motion.div>
-              <div className="flex flex-col items-center gap-1">
-                <span className="mono text-[12px] tracking-[0.5em] font-black bg-black/60 px-3 py-1 rounded-lg backdrop-blur-sm border border-white/5 uppercase">
-                  {skill.label}
-                </span>
-                <motion.div 
-                  animate={{ width: ["0%", "100%", "0%"] }}
-                  transition={{ duration: 3, repeat: Infinity, delay: skill.delay }}
-                  className="h-[2px] bg-current opacity-50"
-                />
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
 
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <motion.div 
@@ -176,7 +120,7 @@ const Hero = () => {
         animate={{ opacity: 1, scale: 1 }}
         className="relative z-10"
       >
-        <div className="mono text-sm text-primary mb-6 inline-flex items-center gap-2 bg-primary/10 px-4 py-1.5 rounded-full border border-primary/20">
+        <div className="mono text-[10px] md:text-xs text-primary mb-6 inline-flex items-center gap-2 bg-primary/10 px-4 py-1.5 rounded-full border border-primary/20 shadow-[0_0_15px_rgba(0,242,255,0.1)]">
           <TerminalIcon size={14} />
           {displayText}<span className="animate-pulse">|</span>
         </div>
@@ -185,52 +129,65 @@ const Hero = () => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="text-6xl md:text-9xl font-bold mb-8 tracking-tighter leading-none uppercase"
+          className="text-5xl md:text-8xl font-bold mb-8 tracking-tighter leading-none uppercase"
         >
           GENAI PLATFORM<br />
           <span className="gradient-text neon-text">ARCHITECT</span>
         </motion.h1>
         
-        <motion.p 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="max-w-2xl text-lg md:text-2xl text-gray-400 font-light leading-relaxed mb-12"
-        >
-          Architecting high-impact, enterprise-grade <span className="text-white font-medium">Generative AI</span> solutions. 
-          Bridging the gap between complex business logic and cutting-edge intelligence.
-        </motion.p>
-        
-        <motion.div 
+        <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.6 }}
           className="flex flex-col sm:flex-row gap-6 justify-center"
         >
-          <a href="#projects" className="group relative px-10 py-4 bg-primary text-black font-bold rounded-xl overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(0,242,255,0.3)] hover:shadow-[0_0_40px_rgba(0,242,255,0.6)]">
-            <span className="relative z-10 flex items-center gap-2">
-                Explore Innovations <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
-            </span>
-            <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity" />
-          </a>
+
           <a href="#contact" className="px-10 py-4 glass glass-hover font-bold rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 border-primary/20">
             Get in Touch
           </a>
         </motion.div>
       </motion.div>
 
+      {/* Scroll Indicator & Skill Icons */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1 }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-500"
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-6"
       >
-        <span className="text-[10px] uppercase tracking-[0.3em] mono">Scroll</span>
-        <motion.div 
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="w-0.5 h-12 bg-gradient-to-b from-primary to-transparent"
-        />
+        <div className="flex flex-col items-center gap-2 text-gray-500">
+          <span className="text-[10px] uppercase tracking-[0.3em] mono">Scroll</span>
+          <motion.div 
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="w-0.5 h-12 bg-gradient-to-b from-primary to-transparent"
+          />
+        </div>
+
+        {/* Horizontal Skill Icons */}
+        <div className="relative group">
+          <div className="flex items-center gap-4 px-6 py-3 glass rounded-2xl border-white/5 backdrop-blur-md relative z-10">
+            {skillIcons.map((skill, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ 
+                  opacity: 1, 
+                  y: 0,
+                }}
+                transition={{ 
+                  opacity: { delay: 1.2 + idx * 0.1 },
+                  y: { delay: 1.2 + idx * 0.1 }
+                }}
+                whileHover={{ scale: 1.2, y: -5, transition: { duration: 0.2 } }}
+                className={cn("cursor-help transition-colors drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]", skill.color)}
+                title={skill.label}
+              >
+                {React.cloneElement(skill.icon, { size: 20 })}
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </motion.div>
     </section>
   );
@@ -246,7 +203,7 @@ const About = () => (
         className="relative"
       >
         <div className="absolute -top-10 -left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
-        <h2 className="text-4xl md:text-5xl font-bold mb-8 uppercase italic">
+        <h2 className="text-3xl md:text-4xl font-bold mb-8 uppercase italic">
             Pioneering the<br />
             <span className="gradient-text not-italic">AI Frontier</span>
         </h2>
@@ -332,7 +289,7 @@ const Expertise = () => {
     <section id="skills" className="py-32 relative">
       <div className="max-w-7xl mx-auto px-6">
         <div className="mb-20 text-center">
-            <h2 className="text-4xl md:text-6xl font-bold mb-4 uppercase">Core <span className="gradient-text">Expertise</span></h2>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4 uppercase">Core <span className="gradient-text">Expertise</span></h2>
             <p className="text-gray-500 mono uppercase tracking-widest text-sm">Engineered for Scalability & Intelligence</p>
         </div>
         <div className="grid md:grid-cols-3 gap-8">
@@ -424,7 +381,7 @@ const Expertise = () => {
 };
 
 const ProjectCard = ({ project, index }) => (
-  <motion.div 
+  <motion.div
     initial={{ y: 50, opacity: 0 }}
     whileInView={{ y: 0, opacity: 1 }}
     viewport={{ once: true }}
@@ -440,18 +397,18 @@ const ProjectCard = ({ project, index }) => (
             <ExternalLink size={20} />
         </div>
       </div>
-      
+
       <h3 className="text-3xl font-bold mb-6 leading-tight group-hover:text-primary transition-colors uppercase">
         {project.title}
       </h3>
-      
+
       <p className="text-gray-400 text-lg leading-relaxed mb-10 flex-grow">
         {project.description}
       </p>
 
       <div className="flex gap-4 items-center">
           <div className="h-px bg-white/10 flex-grow" />
-          <motion.div 
+          <motion.div
             whileHover={{ x: 5 }}
             className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-primary cursor-pointer"
           >
@@ -459,7 +416,7 @@ const ProjectCard = ({ project, index }) => (
           </motion.div>
       </div>
     </div>
-    
+
     <div className={cn("absolute bottom-0 right-0 w-32 h-32 blur-[60px] opacity-20 transition-opacity group-hover:opacity-40", project.glowColor)} />
   </motion.div>
 );
@@ -537,9 +494,9 @@ const Contact = () => (
       
       <div className="flex flex-wrap justify-center gap-6 md:gap-12">
         {[
-          { icon: <Mail />, text: "Email", href: "mailto:aswanth@example.com" },
-          { icon: <Linkedin />, text: "LinkedIn", href: "#" },
-          { icon: <Github />, text: "GitHub", href: "#" }
+          { icon: <Mail />, text: "Email", href: "mailto:aswanth.babu@outlook.com" },
+          { icon: <Linkedin />, text: "LinkedIn", href: "https://www.linkedin.com/in/iamaswanth/" },
+          { icon: <Github />, text: "GitHub", href: "https://github.com/gh-aswanth" }
         ].map((link, idx) => (
           <motion.a 
             key={idx}
@@ -560,7 +517,7 @@ const Contact = () => (
             <span className="hover:text-white cursor-pointer transition-colors">Privacy</span>
             <span className="hover:text-white cursor-pointer transition-colors">Terms</span>
         </div>
-        <div>GLOBAL TECH HUB</div>
+        <div>GenAI Developer</div>
       </div>
     </div>
   </section>
@@ -602,10 +559,11 @@ const App = () => {
   }
 
   return (
-    <div className="antialiased selection:bg-primary selection:text-black bg-[#030303]">
+    <div className="antialiased selection:bg-primary selection:text-black min-h-screen relative overflow-x-hidden">
+      <div className="fixed inset-0 bg-[#030303] -z-30" />
       <div className="noise-overlay" />
-      <BinaryRain />
       <Background3D />
+      {/*<BinaryRain />*/}
       <CustomCursor />
       
       <motion.div
@@ -617,11 +575,8 @@ const App = () => {
       
       <main className="relative z-10">
         <Hero />
-        <About />
+        <SummaryBoard />
         <Expertise />
-        <React.Suspense fallback={<div className="h-96 flex items-center justify-center text-primary">Loading Innovations...</div>}>
-          <Projects />
-        </React.Suspense>
         <Contact />
       </main>
     </div>

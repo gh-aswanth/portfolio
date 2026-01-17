@@ -1,46 +1,107 @@
-import { useRef, useMemo, useState } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame, extend } from '@react-three/fiber';
 import * as THREE from 'three';
 import { PointMaterial } from '@react-three/drei';
 
 extend({ PointMaterial });
 
+const BeatPulse = ({ position, color, nodeIdx }) => {
+  const meshRef = useRef();
+  const ringRef = useRef();
+  const sonarRef = useRef();
+  const lightRef = useRef();
+  const [lastNodeIdx, setLastNodeIdx] = useState(nodeIdx);
+  const [startTime, setStartTime] = useState(0);
+  
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    
+    if (nodeIdx !== lastNodeIdx) {
+      setLastNodeIdx(nodeIdx);
+      setStartTime(t);
+    }
+
+    const elapsed = t - startTime;
+    const duration = 2.0;
+    const progress = Math.min(elapsed / duration, 1.0);
+
+    if (meshRef.current) {
+      // Main Dot
+      const s = 1.0;
+      meshRef.current.scale.set(s, s, s);
+      meshRef.current.material.opacity = (1 - progress) * 0.8;
+    }
+
+    if (ringRef.current) {
+      // Outer Ring
+      const s = 1 + progress * 2;
+      ringRef.current.scale.set(s, s, s);
+      ringRef.current.material.opacity = (1 - progress) * 0.5;
+    }
+
+    if (sonarRef.current) {
+      // Pulsing Sonar
+      const s = 1 + progress * 5;
+      sonarRef.current.scale.set(s, s, s);
+      sonarRef.current.material.opacity = (1 - progress) * 0.2;
+    }
+    
+    if (lightRef.current) {
+      lightRef.current.intensity = (1 - progress) * 10;
+    }
+  });
+
+  return (
+    <group position={position}>
+      {/* Main Dot */}
+      <mesh ref={meshRef}>
+        <sphereGeometry args={[0.08, 16, 16]} />
+        <meshBasicMaterial color={color} transparent opacity={0.8} />
+      </mesh>
+      {/* Outer Ring */}
+      <mesh ref={ringRef}>
+        <ringGeometry args={[0.12, 0.14, 32]} />
+        <meshBasicMaterial color={color} transparent opacity={0.5} side={THREE.DoubleSide} />
+      </mesh>
+      {/* Sonar Effect */}
+      <mesh ref={sonarRef}>
+        <ringGeometry args={[0.2, 0.22, 32]} />
+        <meshBasicMaterial color={color} transparent opacity={0.2} side={THREE.DoubleSide} />
+      </mesh>
+      <pointLight ref={lightRef} color={color} distance={4} intensity={0} />
+    </group>
+  );
+};
+
 const HNSWGraph = () => {
   console.log("HNSWGraph rendering");
-  const count = 40;
+  const count = 60; // Increased node count for more complexity
   const nodes = useMemo(() => {
     return Array.from({ length: count }, (_, i) => ({
       position: new THREE.Vector3(
-        (Math.random() - 0.5) * 8,
-        (Math.random() - 0.5) * 8,
-        (Math.random() - 0.5) * 8
+        (Math.random() - 0.5) * 20, // Wider distribution
+        (Math.random() - 0.5) * 12,
+        (Math.random() - 0.5) * 15
       ),
-      level: i < 5 ? 2 : i < 15 ? 1 : 0, // hierarchical levels
+      level: i < 5 ? 2 : i < 20 ? 1 : 0, 
       connections: []
     }));
   }, []);
 
-  // Create hierarchical connections (HNSW-style)
+  // Create random graph connections
   useMemo(() => {
     nodes.forEach((node, i) => {
-      // Connect to neighbors at the same level or lower
-      const neighbors = nodes
-        .map((n, idx) => ({ idx, dist: node.position.distanceTo(n.position), level: n.level }))
-        .filter(n => n.idx !== i && n.level <= node.level)
+      // Connect each node to 2-4 random neighbors to make it look like a random graph
+      const numConns = 2 + Math.floor(Math.random() * 3);
+      const candidates = nodes
+        .map((n, idx) => ({ idx, dist: node.position.distanceTo(n.position) }))
+        .filter(n => n.idx !== i)
         .sort((a, b) => a.dist - b.dist)
-        .slice(0, 3);
+        .slice(0, 10); // Look at 10 nearest neighbors
       
-      node.connections = neighbors.map(n => n.idx);
-      
-      // Ensure higher levels have entries to lower levels
-      if (node.level > 0) {
-        const lowerNeighbors = nodes
-          .map((n, idx) => ({ idx, dist: node.position.distanceTo(n.position), level: n.level }))
-          .filter(n => n.level < node.level)
-          .sort((a, b) => a.dist - b.dist)
-          .slice(0, 1);
-        node.connections.push(...lowerNeighbors.map(n => n.idx));
-      }
+      // Pick random ones from the nearest candidates
+      const shuffled = candidates.sort(() => 0.5 - Math.random());
+      node.connections = shuffled.slice(0, numConns).map(n => n.idx);
     });
   }, [nodes]);
 
@@ -61,6 +122,14 @@ const HNSWGraph = () => {
 
   const [visitedNodes, setVisitedNodes] = useState(new Set());
   const [activePath, setActivePath] = useState([]);
+  const [beatingNodeIdx, setBeatingNodeIdx] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBeatingNodeIdx(Math.floor(Math.random() * count));
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
@@ -74,8 +143,8 @@ const HNSWGraph = () => {
     const phaseTime = t % cycleTime;
     
     let currentPhase = 'waiting';
-    if (phaseTime < 2) currentPhase = 'waiting';
-    else if (phaseTime < 4) currentPhase = 'embedding';
+    if (phaseTime < 1) currentPhase = 'waiting';
+    else if (phaseTime < 3) currentPhase = 'embedding';
     else currentPhase = 'searching';
 
     if (currentPhase !== searchState.phase) {
@@ -86,28 +155,32 @@ const HNSWGraph = () => {
           setActivePath([]);
           return { ...s, phase: currentPhase, currentNodeIdx: s.targetNodeIdx, targetNodeIdx: nextTarget, path: [], step: 0 };
         } else if (currentPhase === 'searching') {
-          // HNSW Multi-level Greedy Search Simulation
+          // Find path to target using BFS/Greedy search
           const path = [s.currentNodeIdx];
           let curr = s.currentNodeIdx;
-          const target = nodes[s.targetNodeIdx].position;
+          const targetIdx = s.targetNodeIdx;
+          const visited = new Set([curr]);
           
           for (let i = 0; i < 20; i++) {
-            const neighbors = nodes[curr].connections;
-            let bestNeighbor = curr;
-            let minDist = nodes[curr].position.distanceTo(target);
+            const neighbors = nodes[curr].connections.filter(n => !visited.has(n));
+            if (neighbors.length === 0) break;
             
-            neighbors.forEach(nIdx => {
-              const d = nodes[nIdx].position.distanceTo(target);
+            // Pick neighbor closest to target
+            let best = neighbors[0];
+            let minDist = nodes[best].position.distanceTo(nodes[targetIdx].position);
+            
+            neighbors.forEach(n => {
+              const d = nodes[n].position.distanceTo(nodes[targetIdx].position);
               if (d < minDist) {
                 minDist = d;
-                bestNeighbor = nIdx;
+                best = n;
               }
             });
             
-            if (bestNeighbor === curr) break;
-            curr = bestNeighbor;
+            curr = best;
+            visited.add(curr);
             path.push(curr);
-            if (curr === s.targetNodeIdx) break;
+            if (curr === targetIdx) break;
           }
           return { ...s, phase: currentPhase, path, step: 0 };
         } else {
@@ -118,8 +191,8 @@ const HNSWGraph = () => {
 
     // Animate searching phase
     if (searchState.phase === 'searching' && searchState.path.length > 0) {
-      const searchStartTime = (Math.floor(t / cycleTime) * cycleTime) + 4;
-      const totalSearchTime = cycleTime - 4.5; 
+      const searchStartTime = (Math.floor(t / cycleTime) * cycleTime) + 3;
+      const totalSearchTime = cycleTime - 3.5; 
       const stepDuration = totalSearchTime / searchState.path.length;
       const progress = (t - searchStartTime) / stepDuration;
       const currentStep = Math.floor(progress);
@@ -142,7 +215,6 @@ const HNSWGraph = () => {
             setActiveEdgePoints(edgePos);
           }
 
-          // Update visited nodes and active path
           if (currentStep >= activePath.length) {
             setVisitedNodes(prev => new Set(prev).add(startIdx));
             setActivePath(searchState.path.slice(0, currentStep + 2));
@@ -166,26 +238,33 @@ const HNSWGraph = () => {
     }
   });
 
-  const { nodePositions, nodeColors } = useMemo(() => {
+  const { nodePositions, nodeColors, nodeSizes } = useMemo(() => {
     const pos = new Float32Array(nodes.length * 3);
     const col = new Float32Array(nodes.length * 3);
+    const size = new Float32Array(nodes.length);
     const color = new THREE.Color();
     nodes.forEach((n, i) => {
       pos.set([n.position.x, n.position.y, n.position.z], i * 3);
       
       let levelColor;
+      let nodeSize = 0.15;
+      
       if (i === searchState.targetNodeIdx) {
-        levelColor = "#ff00ea"; // Target color
+        levelColor = "#ff00ea"; 
+        nodeSize = 0.3;
       } else if (visitedNodes.has(i)) {
-        levelColor = "#00ffaa"; // Visited color
+        levelColor = "#00ffaa"; 
+        nodeSize = 0.2;
       } else {
         levelColor = n.level === 2 ? "#ffffff" : n.level === 1 ? "#00f2ff" : "#7000ff";
+        nodeSize = n.level === 2 ? 0.25 : n.level === 1 ? 0.18 : 0.08;
       }
       
       color.set(levelColor);
       col.set([color.r, color.g, color.b], i * 3);
+      size[i] = nodeSize;
     });
-    return { nodePositions: pos, nodeColors: col };
+    return { nodePositions: pos, nodeColors: col, nodeSizes: size };
   }, [nodes, visitedNodes, searchState.targetNodeIdx]);
 
   const linePositions = useMemo(() => {
@@ -216,20 +295,26 @@ const HNSWGraph = () => {
           <bufferAttribute attach="attributes-position" count={nodes.length} array={nodePositions} itemSize={3} />
           <bufferAttribute attach="attributes-color" count={nodes.length} array={nodeColors} itemSize={3} />
         </bufferGeometry>
-        <PointMaterial size={0.2} vertexColors transparent opacity={0.9} sizeAttenuation />
+        <PointMaterial 
+          size={0.25} 
+          vertexColors 
+          transparent 
+          opacity={0.8} 
+          sizeAttenuation 
+        />
       </points>
 
       <lineSegments ref={linesRef}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" count={linePositions.length / 3} array={linePositions} itemSize={3} />
         </bufferGeometry>
-        <lineBasicMaterial color="#00f2ff" transparent opacity={0.2} />
+        <lineBasicMaterial color="#00f2ff" transparent opacity={0.4} />
       </lineSegments>
 
       <mesh ref={searchPathRef}>
         <sphereGeometry args={[0.15, 16, 16]} />
         <meshBasicMaterial color="#ffffff" />
-        <pointLight color="#00f2ff" intensity={10} distance={5} decay={2} />
+        <pointLight color="#00ffaa" intensity={15} distance={10} decay={2} />
       </mesh>
 
       {activeEdgePoints.length > 0 && (
@@ -237,7 +322,8 @@ const HNSWGraph = () => {
           <bufferGeometry>
             <bufferAttribute attach="attributes-position" count={2} array={activeEdgePoints} itemSize={3} />
           </bufferGeometry>
-          <lineBasicMaterial color="#ff00ea" transparent opacity={1} linewidth={3} />
+          <lineBasicMaterial color="#00ffaa" transparent opacity={1} linewidth={3} />
+          <pointLight color="#00ffaa" intensity={20} distance={5} />
         </line>
       )}
 
@@ -246,15 +332,29 @@ const HNSWGraph = () => {
           <bufferGeometry>
             <bufferAttribute attach="attributes-position" count={pathLinePositions.length / 3} array={pathLinePositions} itemSize={3} />
           </bufferGeometry>
-          <lineBasicMaterial color="#00ffaa" transparent opacity={0.8} linewidth={2} />
+          <lineBasicMaterial color="#00ffaa" transparent opacity={0.6} linewidth={2} />
         </lineSegments>
       )}
 
-      {/* Target Highlight */}
+      {/* Target Pulse */}
       <mesh position={nodes[searchState.targetNodeIdx].position}>
-        <sphereGeometry args={[0.3, 16, 16]} />
-        <meshBasicMaterial color="#ff00ea" transparent opacity={0.3} />
+        <sphereGeometry args={[0.08, 16, 16]} />
+        <meshBasicMaterial color="#ff00ea" />
       </mesh>
+      <group position={nodes[searchState.targetNodeIdx].position}>
+        <mesh>
+          <ringGeometry args={[0.15, 0.17, 32]} />
+          <meshBasicMaterial color="#ff00ea" transparent opacity={0.4} side={THREE.DoubleSide} />
+        </mesh>
+        <pointLight color="#ff00ea" intensity={10} distance={5} />
+      </group>
+
+      {/* Neon Beat Effect */}
+      <BeatPulse 
+        position={nodes[beatingNodeIdx].position} 
+        color={nodes[beatingNodeIdx].level === 2 ? "#ffffff" : nodes[beatingNodeIdx].level === 1 ? "#00f2ff" : "#7000ff"} 
+        nodeIdx={beatingNodeIdx}
+      />
     </group>
   );
 };
